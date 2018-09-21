@@ -3,11 +3,15 @@ from setuptools import setup, find_packages
 VERSION='0.1.0-alpha'
 
 long_description='An opinionated fast tool that provisions kubernetes clusters atop libvirt'
+
 packages=[
     'libvirt-installer',
 ]
+
 install_requires=[
     'click',
+    'libvirt-python',
+    'toml',
 ]
 def main():
     setup_info = dict(

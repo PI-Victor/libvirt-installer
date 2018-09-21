@@ -1,0 +1,15 @@
+[[cluster]]
+
+[cluster.node1]
+name = "master"
+
+[[cluster.node.network]]
+type = "static"
+
+[[cluster.node.network]]
+type = "nat"
+[[cluster.node.storage-pool]]
+dir = "/var/lib/libvirt/images/"
+
+[cluster.node2]
+name = "slave"
