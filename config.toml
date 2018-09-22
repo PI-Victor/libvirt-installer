@@ -1,15 +1,18 @@
-[[cluster]]
-
-[cluster.node1]
+[[cluster.node]]
 name = "master"
 
 [[cluster.node.network]]
-type = "static"
+type = "nat"
+cidr_block = "176.16.15.0/24"
+
+73-77-CC-4B-0A-66 = "176.16.15.100"
+
 
 [[cluster.node.network]]
 type = "nat"
+
 [[cluster.node.storage-pool]]
 dir = "/var/lib/libvirt/images/"
 
-[cluster.node2]
+[[cluster.node]]
 name = "slave"
