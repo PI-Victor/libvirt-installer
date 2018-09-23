@@ -1,5 +1,6 @@
 from abc import ABC
 
+
 class BaseResource(ABC):
     pass
 
@@ -35,3 +36,4 @@ class Node():
 
     def init(self):
         pass
+
