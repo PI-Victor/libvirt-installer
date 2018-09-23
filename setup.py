@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 VERSION='0.1.0'
 
 long_description='''
-An opinionated tool that provisions kubernetes clusters atop libvirt
+An opinionated command line utility that provisions kubernetes clusters atop libvirt.
 '''
 
 packages=[
@@ -14,6 +14,8 @@ install_requires=[
     'click',
     'libvirt-python',
     'toml',
+    'jinja2',
+    'tabulate',
 ]
 
 def main():

@@ -10,16 +10,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import toml
 import libvirt
-import sys
 
 from libvirt import (
     VIR_CONNECT_LIST_DOMAINS_ACTIVE,
 )
 
 from .log import log
-from .utils import Error
+from .utils import load_config, tabulate_data
 
 
 def connection_wrapper(func):
@@ -66,15 +64,25 @@ def list_domains(conn=None, active=True, describe=False, hypervisor_uri=''):
     :param active: Set to false to include inactive domains.
     :param describe: Set to true to describe each specified domain.
     """
-    for domain in conn.listAllDomains(0):
-        if active and domain.isActive() == 0:
-            continue
+    _table_headers = [
+        'Name',
+        'ID',
+        'State',
+        'UUID',
+    ]
+
+    if active:
+        domains = list([
+            domain.name(),
+            domain.ID(),
+            domain.state(),
+            domain.UUIDString(),
+        ] for domain in conn.listAllDomains(VIR_CONNECT_LIST_DOMAINS_ACTIVE))
         
-        if domain.ID() == -1:
-            print('Name:{} UUID:{}'.format(domain.name(), domain.UUIDString()))
-            continue
-            
-        print('Name:{} ID:{}'.format(domain.name(), domain.ID()))
+    else:
+        domains = list(domain.name() for domain in conn.listAllDomains(0))
+
+    tabulate_data(domains, _table_headers)
 
 @connection_wrapper
 def halt_domains(conn=None, *domain_ids, restart=False, hypervisor_uri):
@@ -99,15 +107,4 @@ def start_domains(conn=None, *domain_ids, hypervisor_uri=''):
     available_domains = any(domain in domain_ids for domain in domains)
     
 
-def load_config(config_file):
-    """Loads the configuration 
 
-    param config: TOML spec configuration used for creating new resources.
-    """
-    
-    try:
-        config = toml.load(config_file)
-    except Exception as e:
-        raise e
-
-    return config

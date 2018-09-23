@@ -1,5 +1,7 @@
 click==6.7
 Jinja2==2.10
+libvirt-installer==0.1.0
 libvirt-python==4.6.0
 MarkupSafe==1.0
+tabulate==0.8.2
 toml==0.9.6

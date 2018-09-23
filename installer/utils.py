@@ -10,5 +10,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class Error():
-    pass
+import toml
+from tabulate import tabulate
+from .log import log
+
+def load_config(config_file):
+    """Loads the configuration 
+
+    param config: TOML spec configuration used for creating new resources.
+    """
+    
+    try:
+        config = toml.load(config_file)
+    except Exception as e:
+        raise e
+
+    return config
+
+
+def tabulate_data(data, headers):
+    _table_type = 'fancy_grid'
+    print(tabulate(data, headers))
