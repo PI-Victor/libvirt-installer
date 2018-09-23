@@ -39,11 +39,7 @@ def cli():
 
 @cli.command()
 @add_options(_global_options)
-@click.argument(
-    'config-file',
-    default='config.toml',
-    type=click.File('r'),
-)
+@click.argument('config-file', default='config.toml', type=click.File('r'))
 def create(hypervisor_uri, config_file):
     create_domains(hypervisor_uri=hypervisor_uri, config_file=config_file)
 
@@ -60,12 +56,15 @@ def list(hypervisor_uri, active):
 
 @cli.command()
 @add_options(_global_options)
-@click.argument(
-    'domains',
-    default=[],
-)
+@click.argument('domains', default=[])
 def delete(hypervisor_uri, domains):
     delete_domains(domains, hypervisor_uri=hypervisor_uri)
+
+@cli.command()
+@add_options(_global_options)
+@click.argument('uuid',default='')
+def info(hypervisor_uri, domain_uuid):
+    pass
 
 if __name__ == '__main__':
     cli()

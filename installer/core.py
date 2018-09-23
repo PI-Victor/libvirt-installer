@@ -12,6 +12,7 @@
 
 import toml
 import libvirt
+import sys
 
 from .log import log
 from .utils import Error
@@ -24,7 +25,7 @@ def connection_wrapper(func):
     param func: Any function that needs to perform actions against libvirt
     """
     def _wrap_connection(*args, **kwargs):
-        conn = libvirt.openReadOnly(kwargs.get('hypervisor_uri'))
+        conn = libvirt.open(kwargs.get('hypervisor_uri'))
         if conn == None:
             raise Error
         else:
@@ -48,7 +49,7 @@ def delete_domains(conn=None, *domains, hypervisor_uri=''):
 
     :param domains: A comma separated list of domains to delete.
     """
-
+    
     pass
 
 @connection_wrapper
@@ -58,8 +59,8 @@ def list_domains(conn=None, active=True, hypervisor_uri=''):
     :param active: Toggle to true/false to list inactive domains.
     """
 
-    log.info(active)
-    pass
+    for i in conn.listAllDomains():
+        print('Name:{} UUID:{}'.format(i.name(), i.UUIDString()))
 
 def load_config(config_file):
     """Loads the configuration 
