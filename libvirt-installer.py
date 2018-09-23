@@ -1,10 +1,23 @@
+# Copyright (C) 2018 Victor Palade <victor@cloudflavor.io>.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+__author__ = 'Victor Palade <victor@cloudflavor.io>'
+__license__ = 'Apache-2.0'
+
+
 import click
 
-from installer.core import (
-    create_domains,
-    delete_domains,
-    list_domains,
-)
+from installer.core import (create_domains, delete_domains, list_domains)
 
 
 _global_options = [
@@ -16,7 +29,7 @@ _global_options = [
 ]
 
 def add_options(options):
-    """Pre-wrap common parameters that all commands should 
+    """Wrap common parameters that all commands should 
     implement.
     """
     def _add_options(func):
@@ -30,41 +43,30 @@ def cli(**kwargs):
     pass
 
 @cli.command()
-@click.option(
-    '--config-file',
-    default='config.toml',
-    help='Path to TOML application config',
-    type=click.Path(exists=True),
-)
 @add_options(_global_options)
+@click.argument(
+    'config-file',
+    default='config.toml',
+    type=click.File('r'),
+)
 def create(hypervisor_uri, config_file):
-    create_domains(
-        hypervisor_uri=hypervisor_uri,
-        config_file=config_file,
-    )
+    create_domains(hypervisor_uri=hypervisor_uri, config_file=config_file)
 
 @cli.command()
-@click.option(
-    '--list',
-    default='',
-    help='List all available domains',
-)
 @add_options(_global_options)
+@click.argument(
+    '--list',
+    default=False,
+    type=bool,
+)
 def list(hypervisor_uri):
     list_domains(hypervisor_uri=hypervisor_uri)
 
 @cli.command()
-@click.option(
-    '--delete',
-    default='',
-    help='A single or comma separated values of available domains to delete',
-)
+@click.argument('')
 @add_options(_global_options)
 def delete(hypervisor_uri, domain_list):
-    delete_domains(
-        hypervisor_uri=hypervisor_uri,
-        domain_list=hypervisory_uri,
-    )
+    delete_domains(hypervisor_uri=hypervisor_uri, domain_list=domain_list)
 
 if __name__ == '__main__':
     cli()
