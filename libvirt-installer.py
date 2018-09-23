@@ -17,7 +17,7 @@ from installer.core import (create_domains, delete_domains, list_domains)
 
 _global_options = [
     click.option(
-        '--hypervisor_uri',
+        '--hypervisor-uri',
         default='qemu:///system',
         help='The URI of the connection',
     ),
@@ -34,7 +34,7 @@ def add_options(options):
     return _add_options
 
 @click.group()
-def cli(**kwargs):
+def cli():
     pass
 
 @cli.command()
@@ -49,19 +49,23 @@ def create(hypervisor_uri, config_file):
 
 @cli.command()
 @add_options(_global_options)
-@click.argument(
-    '--list',
-    default=False,
+@click.option(
+    '--active',
+    default=True,
+    help='Set to false to view inactive domains',
     type=bool,
 )
-def list(hypervisor_uri):
-    list_domains(hypervisor_uri=hypervisor_uri)
+def list(hypervisor_uri, active):
+    list_domains(active=active, hypervisor_uri=hypervisor_uri)
 
 @cli.command()
-@click.argument('')
 @add_options(_global_options)
-def delete(hypervisor_uri, domain_list):
-    delete_domains(hypervisor_uri=hypervisor_uri, domain_list=domain_list)
+@click.argument(
+    'domains',
+    default=[],
+)
+def delete(hypervisor_uri, domains):
+    delete_domains(domains, hypervisor_uri=hypervisor_uri)
 
 if __name__ == '__main__':
     cli()

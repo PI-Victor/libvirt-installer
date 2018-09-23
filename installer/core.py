@@ -20,42 +20,50 @@ from .utils import Error
 def connection_wrapper(func):
     """Wraps a function, representing an action, with the libvirt connection 
     handler.
+
     param func: Any function that needs to perform actions against libvirt
     """
-    def _wrap_connection(**kwargs):
+    def _wrap_connection(*args, **kwargs):
         conn = libvirt.openReadOnly(kwargs.get('hypervisor_uri'))
         if conn == None:
             raise Error
         else:
-            func(**kwargs, conn=conn)
+            func(conn, *args, **kwargs)
     
     return _wrap_connection
 
 @connection_wrapper
-def create_domains(hypervisor_uri, config_file, conn=None):
-    """Create new domains 
-    :param config_file: toml format configuration file that describes the 
+def create_domains(conn=None, hypervisor_uri='', config_file=None):
+    """Create new domains based on the passed configuration file.
+
+    :param config_file: TOML format configuration file that describes the 
     domains.
     """
     config = load_config(config_file)
     log.debug('Loaded config: \n{}'.format(config))
 
 @connection_wrapper
-def delete_domains(hypervisor_uri, *domains, active):
-    """Deletes domains 
+def delete_domains(conn=None, *domains, hypervisor_uri=''):
+    """Deletes one or more domain 
+
+    :param domains: A comma separated list of domains to delete.
     """
-    
+
     pass
 
 @connection_wrapper
-def list_domains(hypervisor_uri, active=False):
+def list_domains(conn=None, active=True, hypervisor_uri=''):
     """List all available domains
+
+    :param active: Toggle to true/false to list inactive domains.
     """
-    
+
+    log.info(active)
     pass
 
 def load_config(config_file):
     """Loads the configuration 
+
     param config: TOML spec configuration used for creating new resources.
     """
     
