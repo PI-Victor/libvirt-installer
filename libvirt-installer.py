@@ -12,7 +12,13 @@
 
 import click
 
-from installer.core import (create_domains, delete_domains, list_domains)
+from installer.core import (
+    create_domains,
+    delete_domains,
+    list_domains,
+    halt_domains,
+    start_domains,
+)
 
 
 _global_options = [
@@ -41,6 +47,8 @@ def cli():
 @add_options(_global_options)
 @click.argument('config-file', default='config.toml', type=click.File('r'))
 def create(hypervisor_uri, config_file):
+    """Create 
+    """
     create_domains(hypervisor_uri=hypervisor_uri, config_file=config_file)
 
 @cli.command()
@@ -48,23 +56,59 @@ def create(hypervisor_uri, config_file):
 @click.option(
     '--active',
     default=True,
-    help='Set to false to view inactive domains',
+    help='Default: True. Set to false to list inactive domains',
     type=bool,
 )
-def list(hypervisor_uri, active):
-    list_domains(active=active, hypervisor_uri=hypervisor_uri)
+@click.option(
+    '--describe',
+    default=False,
+    help='Default: False. Set to True to view domain description',
+    type=bool,
+)
+def list(hypervisor_uri, active, describe):
+    """Lists all active domains.
+    To list inactive domains, use --active false.
+    To view a inexhaustive description of the domain, pass --describe true.
+    """
+    list_domains(
+        active=active,
+        describe=describe,
+        hypervisor_uri=hypervisor_uri
+    )
 
 @cli.command()
 @add_options(_global_options)
-@click.argument('domains', default=[])
-def delete(hypervisor_uri, domains):
-    delete_domains(domains, hypervisor_uri=hypervisor_uri)
+@click.argument('IDs', default=[])
+def delete(hypervisor_uri, ids):
+    """Comma separated domain ids to delete.
+    Use the *list* command to list the corresponding domains ID.
+    This command will first try to destroy and then undefine the corresponding
+    domain.
+    """
+    delete_domains(ids, hypervisor_uri=hypervisor_uri)
 
 @cli.command()
 @add_options(_global_options)
-@click.argument('uuid',default='')
-def info(hypervisor_uri, domain_uuid):
+@click.option(
+    '--restart',
+    default=True,
+    type=bool,
+    help='Restart the machines instead of shutting them down',
+)
+@click.argument('IDs', default=[])
+def halt(hypervisor_uri, ids, restart):
+    """Shutdown one or more domains.
+    To restart one or more domain, pass --restart true.
+    """
     pass
+
+@cli.command()
+@add_options(_global_options)
+@click.argument('IDs', default=[])
+def start(hypervisor_uri, ids):
+    """Start one or more domains.
+    """
+    start_domains(hypervisor_uri, ids)
 
 if __name__ == '__main__':
     cli()
