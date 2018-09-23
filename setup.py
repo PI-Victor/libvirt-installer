@@ -1,11 +1,13 @@
 from setuptools import setup, find_packages
 
-VERSION='0.1.0-alpha'
+VERSION='0.1.0'
 
-long_description='An opinionated fast tool that provisions kubernetes clusters atop libvirt'
+long_description='''
+An opinionated tool that provisions kubernetes clusters atop libvirt
+'''
 
 packages=[
-    'libvirt-installer',
+    'installer',
 ]
 
 install_requires=[
@@ -13,12 +15,14 @@ install_requires=[
     'libvirt-python',
     'toml',
 ]
+
 def main():
     setup_info = dict(
         name='libvirt-installer',
         version=VERSION,
-        author='Victor Palade',
-        description='Libvirt/Kubernetes tools',
+        url="https://github.com/pi-victor/libvirt-installer",
+        author='Victor Palade <victor@cloudflavor.io>',
+        description='Libvirt wrapper for fast kubernetes bootstraps',
         long_description=long_description,
         license='Apache-2.0',
         packages=packages,

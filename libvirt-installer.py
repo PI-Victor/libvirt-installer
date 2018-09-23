@@ -10,11 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-__author__ = 'Victor Palade <victor@cloudflavor.io>'
-__license__ = 'Apache-2.0'
-
-
 import click
 
 from installer.core import (create_domains, delete_domains, list_domains)
