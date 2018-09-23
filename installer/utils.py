@@ -30,4 +30,4 @@ def load_config(config_file):
 
 def tabulate_data(data, headers):
     _table_type = 'fancy_grid'
-    print(tabulate(data, headers))
+    print(tabulate(data, headers, tablefmt=_table_type))

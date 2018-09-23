@@ -12,10 +12,6 @@
 
 import libvirt
 
-from libvirt import (
-    VIR_CONNECT_LIST_DOMAINS_ACTIVE,
-)
-
 from .log import log
 from .utils import load_config, tabulate_data
 
@@ -64,6 +60,16 @@ def list_domains(conn=None, active=True, describe=False, hypervisor_uri=''):
     :param active: Set to false to include inactive domains.
     :param describe: Set to true to describe each specified domain.
     """
+    state_map = {
+        libvirt.VIR_DOMAIN_RUNNING  : "running",
+        libvirt.VIR_DOMAIN_BLOCKED  : "idle",
+        libvirt.VIR_DOMAIN_PAUSED   : "paused",
+        libvirt.VIR_DOMAIN_SHUTDOWN : "in shutdown",
+        libvirt.VIR_DOMAIN_SHUTOFF  : "shut off",
+        libvirt.VIR_DOMAIN_CRASHED  : "crashed",
+        libvirt.VIR_DOMAIN_NOSTATE  : "no state",
+    }
+    
     _table_headers = [
         'Name',
         'ID',
@@ -71,17 +77,13 @@ def list_domains(conn=None, active=True, describe=False, hypervisor_uri=''):
         'UUID',
     ]
 
-    if active:
-        domains = list([
-            domain.name(),
-            domain.ID(),
-            domain.state(),
-            domain.UUIDString(),
-        ] for domain in conn.listAllDomains(VIR_CONNECT_LIST_DOMAINS_ACTIVE))
+    domains = list([
+        domain.name(),
+        domain.ID(),
+        ', '.join(set(map(lambda state: state_map[state], domain.state()))),
+        domain.UUIDString(),
+    ] for domain in conn.listAllDomains(1 if active else 0))
         
-    else:
-        domains = list(domain.name() for domain in conn.listAllDomains(0))
-
     tabulate_data(domains, _table_headers)
 
 @connection_wrapper
