@@ -78,14 +78,14 @@ def list(hypervisor_uri, active, describe):
 
 @cli.command()
 @add_options(_global_options)
-@click.argument('IDs', default=[])
-def delete(hypervisor_uri, ids):
+@click.argument('UUIDs', default=[])
+def delete(hypervisor_uri, uuids):
     """Comma separated domain ids to delete.
-    Use the *list* command to list the corresponding domains ID.
+    Use the *list* command to list the corresponding domains UUIDs.
     This command will first try to destroy and then undefine the corresponding
     domain.
     """
-    delete_domains(ids, hypervisor_uri=hypervisor_uri)
+    delete_domains(hypervisor_uri, uuids)
 
 @cli.command()
 @add_options(_global_options)
@@ -95,20 +95,20 @@ def delete(hypervisor_uri, ids):
     type=bool,
     help='Restart the machines instead of shutting them down',
 )
-@click.argument('IDs', default=[])
-def halt(hypervisor_uri, ids, restart):
+@click.argument('UUIDs', default=[])
+def halt(hypervisor_uri, uuids, restart):
     """Shutdown one or more domains.
     To restart one or more domain, pass --restart true.
     """
-    pass
+    halt_domains(hypervisor_uri, uuids)
 
 @cli.command()
 @add_options(_global_options)
-@click.argument('IDs', default=[])
-def start(hypervisor_uri, ids):
+@click.argument('UUIDs', default=[])
+def start(hypervisor_uri, uuids):
     """Start one or more domains.
     """
-    start_domains(hypervisor_uri, ids)
+    start_domains(hypervisor_uri, uuids)
 
 if __name__ == '__main__':
     cli()
