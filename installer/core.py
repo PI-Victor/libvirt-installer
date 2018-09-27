@@ -16,23 +16,25 @@ from .log import log
 from .utils import load_config, tabulate_data
 
 
+
 def connection_wrapper(func):
-    """Wraps a function, representing an action, with the libvirt connection 
-    handler.
+    """Validates the connection to libvirt before allowing any actions against
+    it.
 
     param func: Any function that needs to perform actions against libvirt
+    resources.
     """
     def _wrap_connection(*args, **kwargs):
         conn = libvirt.open(kwargs.get('hypervisor_uri'))
         if conn == None:
             raise Error
         else:
-            func(conn, *args, **kwargs)
-    
+            func(*args, **kwargs, conn=conn)
+
     return _wrap_connection
 
 @connection_wrapper
-def create_domains(conn=None, config_file=None, hypervisor_uri=''):
+def create_domains(config_file=None, hypervisor_uri='', conn=None):
     """Create new domains based on the passed configuration file.
 
     :param config_file: TOML format configuration file that describes the 
@@ -42,25 +44,23 @@ def create_domains(conn=None, config_file=None, hypervisor_uri=''):
     log.debug('Loaded config: {}'.format(config))
 
 @connection_wrapper
-def delete_domains(conn=None, *domain_ids, hypervisor_uri=''):
+def delete_domains(domain_uuids, hypervisor_uri='', conn=None):
     """Deletes one or more domain 
 
-    :param domains: A comma separated list of domain IDs to delete.
+    :param domains: A list of domain UUIDs to delete.
     """
-
-    try:
-        log.info()
-    except Exception as e:
-        raise e
-
+    validate_domains(domain_uuids, conn=conn)
+    
 @connection_wrapper
-def list_domains(conn=None, active=True, describe=False, hypervisor_uri=''):
+def list_domains(active=True, describe=False, hypervisor_uri='', conn=None):
     """List all available domains
 
-    :param active: Set to false to include inactive domains.
-    :param describe: Set to true to describe each specified domain.
+    :param active: A filter for inactive domains.
+    :param describe: A filter to describe domains.
     """
-    state_map = {
+    # NOTE: implement describe
+    
+    _state_map = {
         libvirt.VIR_DOMAIN_RUNNING  : "running",
         libvirt.VIR_DOMAIN_BLOCKED  : "idle",
         libvirt.VIR_DOMAIN_PAUSED   : "paused",
@@ -69,7 +69,7 @@ def list_domains(conn=None, active=True, describe=False, hypervisor_uri=''):
         libvirt.VIR_DOMAIN_CRASHED  : "crashed",
         libvirt.VIR_DOMAIN_NOSTATE  : "no state",
     }
-    
+
     _table_headers = [
         'Name',
         'ID',
@@ -78,35 +78,66 @@ def list_domains(conn=None, active=True, describe=False, hypervisor_uri=''):
     ]
 
     domains = list([
-        domain.name(),
-        domain.ID(),
-        ', '.join(set(map(lambda state: state_map[state], domain.state()))),
-        domain.UUIDString(),
-    ] for domain in conn.listAllDomains(1 if active else 0))
+        d.name(),
+        d.ID(),
+        ', '.join(set(map(lambda s: _state_map[s], d.state()))), d.UUIDString()]
+    for d in conn.listAllDomains(libvirt.VIR_DOMAIN_RUNNING if active else 0))
         
     tabulate_data(domains, _table_headers)
 
 @connection_wrapper
-def halt_domains(conn=None, *domain_ids, restart=False, hypervisor_uri):
-    """Shuts down one or more domains.
+def halt_domains(domain_uuids, hypervisor_uri='', restart=False, conn=None):
+    """Shuts down or restarts one or more domains.
     
-    :param domain_ids: Comma separated domain IDs to shutdown/restart.
+    :param domain_uuids: A list of domain UUIDs to shutdown/restart.
     :param restart: If set to true will restart the specified domains instead
     of shutting them down.
     """
+    domains = validate_domains(
+        domains=domain_uuids,
+        state=libvirt.VIR_CONNECT_LIST_DOMAINS_RUNNING,
+        conn=conn,
+    )
     
-    pass
+    if not domains:
+        log.error("No matching domains in running state found!")
+        
+    if restart:
+        for domain in domains:
+            log.info('Rebooting domain {}...'.format(domain.name()))
+            domain.reboot()
+        return
+
+    for domain in domains:
+        log.info('Shutting down domain {}...'.format(domain.name()))
+        domain.shutdown()
 
 @connection_wrapper
-def start_domains(conn=None, *domain_ids, hypervisor_uri=''):
+def start_domains(domain_uuids, hypervisor_uri='', conn=None):
     """Starts one or more domains.
-    If the domain is already active, it will warn the user and skip it.
     
-    :param domain_ids: Comma separated domain IDs to start.
+    :param domain_uuids: A list of domain UUIDs to start.
     """
-    
-    domains = conn.listAllDomains(VIR_CONNECT_LIST_DOMAINS_ACTIVE)
-    available_domains = any(domain in domain_ids for domain in domains)
-    
+    domains = validate_domains(
+        domains=domain_uuids,
+        state=libvirt.VIR_CONNECT_LIST_DOMAINS_SHUTOFF,
+        conn=conn,
+    )
 
+    if not domains:
+        log.error("No matching domains in shutoff state found!")
+        
+    for domain in domains:
+        log.info('Starting domain {}...'.format(domain.name()))
+        domain.create()
 
+def validate_domains(domains, state=0, conn=None):
+    """Filters out domains based on the required state.
+
+    :param domains: a list of UUIDs for the domains that the user wants to 
+    operate on.
+    :param state: A machine state filter.
+    """
+    doms = conn.listAllDomains(state)
+    
+    return [d for d in doms if d.UUIDString() in list(domains)]

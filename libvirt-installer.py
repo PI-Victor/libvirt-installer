@@ -30,9 +30,7 @@ _global_options = [
 ]
 
 def add_options(options):
-    """Wrap common parameters that all commands should 
-    implement.
-    """
+    """Wrap common parameters that all commands should implement."""
     def _add_options(func):
         for option in reversed(options):
             func = option(func)
@@ -47,8 +45,7 @@ def cli():
 @add_options(_global_options)
 @click.argument('config-file', default='config.toml', type=click.File('r'))
 def create(hypervisor_uri, config_file):
-    """Create 
-    """
+    """Create a new cluster based on the config file."""
     create_domains(hypervisor_uri=hypervisor_uri, config_file=config_file)
 
 @cli.command()
@@ -56,20 +53,17 @@ def create(hypervisor_uri, config_file):
 @click.option(
     '--active',
     default=True,
-    help='Default: True. Set to false to list inactive domains',
+    help='Set to false to list inactive domains',
     type=bool,
 )
 @click.option(
     '--describe',
     default=False,
-    help='Default: False. Set to True to view domain description',
+    help='Set to True to view a more detailed domain description',
     type=bool,
 )
 def list(hypervisor_uri, active, describe):
-    """Lists all active domains.
-    To list inactive domains, use --active false.
-    To view a inexhaustive description of the domain, pass --describe true.
-    """
+    """Lists all domains."""
     list_domains(
         active=active,
         describe=describe,
@@ -78,9 +72,10 @@ def list(hypervisor_uri, active, describe):
 
 @cli.command()
 @add_options(_global_options)
-@click.argument('UUIDs', default=[])
+@click.argument('UUIDs', nargs=-1)
 def delete(hypervisor_uri, uuids):
-    """Comma separated domain ids to delete.
+    """A list of domain UUIDs to delete.
+
     Use the *list* command to list the corresponding domains UUIDs.
     This command will first try to destroy and then undefine the corresponding
     domain.
@@ -91,24 +86,21 @@ def delete(hypervisor_uri, uuids):
 @add_options(_global_options)
 @click.option(
     '--restart',
-    default=True,
+    default=False,
     type=bool,
     help='Restart the machines instead of shutting them down',
 )
-@click.argument('UUIDs', default=[])
+@click.argument('UUIDs', nargs=-1)
 def halt(hypervisor_uri, uuids, restart):
-    """Shutdown one or more domains.
-    To restart one or more domain, pass --restart true.
-    """
-    halt_domains(hypervisor_uri, uuids)
+    """Shutdown one or more domains."""
+    halt_domains(uuids, hypervisor_uri=hypervisor_uri, restart=restart)
 
 @cli.command()
 @add_options(_global_options)
-@click.argument('UUIDs', default=[])
+@click.argument('UUIDs', nargs=-1)
 def start(hypervisor_uri, uuids):
-    """Start one or more domains.
-    """
-    start_domains(hypervisor_uri, uuids)
+    """Start one or more domains."""
+    start_domains(uuids, hypervisor_uri=hypervisor_uri)
 
 if __name__ == '__main__':
     cli()
